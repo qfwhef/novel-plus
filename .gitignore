@@ -1,0 +1,34 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Dependencies
+node_modules/
+
+# Build outputs
+target/
+dist/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Sensitive configs (already in subproject .gitignore)
+novel-plus/src/main/resources/application.yml
+novel-plus/src/main/resources/shardingsphere.yaml
+
+# Git subfolders (we want to include content, not nested repos)
+novel-plus/.git/
+novel-front-web/.git/
+
+# Other
+.h2/
+.codebuddy/
+.kiro/
+novel-plus-x/
+doc/
