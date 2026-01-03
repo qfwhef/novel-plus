@@ -1,0 +1,197 @@
+server:
+  port: 8888
+spring:
+  application:
+    name: novel-plus
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://YOUR_DB_HOST:3306/novel-plus?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: YOUR_DB_USERNAME
+    password: YOUR_DB_PASSWORD
+  data:
+    redis:
+      database: 1
+      host: YOUR_REDIS_HOST
+      port: 6379
+      password: YOUR_REDIS_PASSWORD
+      connect-timeout: 10000
+  ai:
+    dashscope:
+      api-key: YOUR_DASHSCOPE_API_KEY
+      chat:
+        options:
+          model: qwen-plus
+  # RabbitMQ 配置
+  rabbitmq:
+    addresses: amqp://YOUR_RABBITMQ_USERNAME:YOUR_RABBITMQ_PASSWORD@YOUR_RABBITMQ_HOST
+    virtual-host: novel
+    # 发送者确认
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    # 消费者确认
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 1
+        retry:
+          enabled: true
+          max-attempts: 3
+
+
+############## Sa-Token 配置  ##############
+sa-token:
+  # token 名称（同时也是 cookie 名称）
+  token-name: Authorization
+  # token 有效期（单位：秒） 默认7天，-1 代表永久有效
+  timeout: 2592000
+  # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
+  active-timeout: -1
+  # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个 token （为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token）
+  is-share: true
+  # token 风格（默认可取值：uuid、simple-uuid、random-32、random-64、random-128、tik）
+  token-style: random-64
+
+  # 是否输出操作日志
+  is-log: true
+  # 是否尝试从header里读取token
+  is-read-header: true
+  # token前缀
+  token-prefix: "Bearer"
+  # jwt秘钥
+  jwt-secret-key: YOUR_JWT_SECRET_KEY
+  # 配置Redis作为持久层
+  alone-redis:
+    # Redis数据库索引
+    database: 1
+    # Redis服务器地址
+    host: YOUR_REDIS_HOST
+    # Redis服务器连接端口
+    port: 6379
+    # Redis服务器连接密码
+    password: YOUR_REDIS_PASSWORD
+    # 连接超时时间（毫秒）
+    timeout: 10000
+  #在未登录场景下获取 Token-Session
+  token-session-check-login: false
+
+novel-plus:
+  cors:
+    allow-origins:
+      - http://localhost:8888
+      - http://localhost:1024
+  r2:
+    access-key-id: YOUR_R2_ACCESS_KEY_ID
+    bucket-name: YOUR_R2_BUCKET_NAME
+    access-key-secret: YOUR_R2_ACCESS_KEY_SECRET
+    endpoint: YOUR_R2_ENDPOINT
+    domain: YOUR_R2_DOMAIN
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+############## XXL-Job 配置  ##############
+xxl:
+  job:
+    enabled: true
+    admin:
+      # 生产环境注册中心地址
+#      addresses: http://YOUR_XXL_JOB_HOST:8800/xxl-job-admin
+    #本地注册中心
+      addresses: http://localhost:8080/xxl-job-admin
+    executor:
+      appname: xxl-job-executor-novel
+      logpath: logs/xxl-job/jobhandler
+    accessToken: YOUR_XXL_JOB_ACCESS_TOKEN
+
+springdoc:
+  api-docs:
+    enabled: true
+
+---
+# ================================
+# Production Environment
+# ================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+  # 生产环境性能优化
+  threads:
+    virtual:
+      enabled: false # 生产环境暂时关闭虚拟线程
+  # 数据库连接池优化
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 300000
+      max-lifetime: 900000
+      connection-test-query: SELECT 1
+      # 连接池监控
+      leak-detection-threshold: 60000
+  # Redis 连接池优化
+  data:
+    redis:
+      lettuce:
+        pool:
+          max-active: 40
+          max-idle: 20
+          min-idle: 10
+          max-wait: 5000ms
+        shutdown-timeout: 200ms
+      timeout: 5000ms
+      # Redis 集群配置（如果使用集群）
+      # cluster:
+      #   nodes: ${REDIS_CLUSTER_NODES}
+      #   max-redirects: 3
+
+# 生产环境服务器优化
+server:
+  # Tomcat 性能调优
+  tomcat:
+    threads:
+      max: 200 # 增加最大线程数
+      min-spare: 20 # 增加最小空闲线程
+    max-connections: 8192 # 增加最大连接数
+    accept-count: 100 # 增加等待队列
+    connection-timeout: 20000
+  # 错误页面配置
+  error:
+    include-stacktrace: never
+    include-message: never
+
+# 生产环境日志配置
+logging:
+  level:
+    root: INFO
+    io.github.xxyopen.novel: INFO
+    org.springframework.cache: INFO
+    com.baomidou.mybatisplus: INFO
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/novel.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+      total-size-cap: 3GB
+
+############## XXL-Job 配置  ##############
+xxl:
+  job:
+    enabled: true
+    admin:
+      # 生产环境注册中心地址
+      addresses: http://localhost:8800/xxl-job-admin
+    executor:
+      appname: xxl-job-executor-novel
+      logpath: logs/xxl-job/jobhandler
+    accessToken: YOUR_XXL_JOB_ACCESS_TOKEN

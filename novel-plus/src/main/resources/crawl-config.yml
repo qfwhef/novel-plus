@@ -1,0 +1,34 @@
+# 爬虫模块配置
+crawl:
+  # HTTP请求间隔(毫秒)
+  interval:
+    min: 100        # 最小间隔
+    max: 500        # 最大间隔
+  
+  # HTTP配置
+  http:
+    timeout: 10000      # 超时时间(毫秒)
+    retry-count: 3      # 失败重试次数
+
+# 磁盘监控(可选,需要启用时去掉注释)
+# disk-monitor:
+#   enabled: true
+#   interval-minutes: 5                    # 检查间隔(分钟)
+#   warning-threshold: 85                   # 警告阈值(%)
+#   severe-threshold: 90                    # 严重阈值(%)
+#   critical-threshold: 95                  # 危急阈值(%)
+#   recipients: admin@example.com           # 告警邮件接收人
+
+# 邮件配置(如果启用磁盘监控和邮件告警)
+# spring:
+#   mail:
+#     host: smtp.example.com
+#     port: 587
+#     username: your-email@example.com
+#     password: your-password
+#     properties:
+#       mail:
+#         smtp:
+#           auth: true
+#           starttls:
+#             enable: true

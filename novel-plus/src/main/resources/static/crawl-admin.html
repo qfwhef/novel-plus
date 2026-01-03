@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爬虫管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102,126,234,0.4);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-header h2 {
+            color: #333;
+            font-size: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102,126,234,0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:hover {
+            background: #f8f9ff;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-running {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #667eea;
+            font-size: 20px;
+        }
+
+        .close-btn {
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            padding: 8px 15px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .page-btn.active,
+        .page-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(102,126,234,0.3);
+        }
+
+        .stat-card h4 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕷️ 爬虫管理系统</h1>
+            <p>Novel-Plus 小说采集控制中心</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('sources')">爬虫源管理</button>
+            <button class="tab-btn" onclick="switchTab('tasks')">单本采集任务</button>
+        </div>
+
+        <!-- 爬虫源管理 -->
+        <div id="sources-tab" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2>爬虫源列表</h2>
+                    <button class="btn btn-primary" onclick="showAddSourceModal()">
+                        ➕ 添加爬虫源
+                    </button>
+                </div>
+                <table id="sources-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>名称</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>更新时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sources-tbody">
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div>📭 暂无爬虫源数据</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 单本采集任务 -->
+        <div id="tasks-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>单本采集任务</h2>
+                    <button class="btn btn-primary" onclick="showAddTaskModal()">
+                        ➕ 添加采集任务
+                    </button>
+                </div>
+                <table id="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>任务ID</th>
+                            <th>源ID</th>
+                            <th>书名</th>
+                            <th>作者</th>
+                            <th>状态</th>
+                            <th>已采集章节</th>
+                            <th>执行次数</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasks-tbody">
+                        <tr>
+                            <td colspan="8" class="empty-state">
+                                <div>📭 暂无采集任务</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑爬虫源模态框 -->
+    <div id="source-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="source-modal-title">添加爬虫源</h3>
+                <button class="close-btn" onclick="closeSourceModal()">&times;</button>
+            </div>
+            <form id="source-form" onsubmit="submitSource(event)">
+                <input type="hidden" id="source-id">
+                <div class="form-group">
+                    <label>爬虫源名称 *</label>
+                    <input type="text" id="source-name" required placeholder="例如: 笔趣阁">
+                </div>
+                <div class="form-group">
+                    <label>爬虫规则 (JSON) *</label>
+                    <textarea id="source-rule" required placeholder='{"charset":"UTF-8","bookDetailUrl":"..."}'></textarea>
+                </div>
+                <div class="form-group">
+                    <label>状态</label>
+                    <select id="source-status">
+                        <option value="0">关闭</option>
+                        <option value="1">开启</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn" onclick="closeSourceModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加采集任务模态框 -->
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加采集任务</h3>
+                <button class="close-btn" onclick="closeTaskModal()">&times;</button>
+            </div>
+            <form id="task-form" onsubmit="submitTask(event)">
+                <div class="form-group">
+                    <label>爬虫源ID *</label>
+                    <input type="number" id="task-source-id" required placeholder="输入爬虫源ID">
+                </div>
+                <div class="form-group">
+                    <label>源站小说ID *</label>
+                    <input type="text" id="task-book-id" required placeholder="例如: 123456">
+                </div>
+                <div class="form-group">
+                    <label>小说名</label>
+                    <input type="text" id="task-book-name" placeholder="可选">
+                </div>
+                <div class="form-group">
+                    <label>作者名</label>
+                    <input type="text" id="task-author-name" placeholder="可选">
+                </div>
+                <div class="form-group">
+                    <label>分类ID</label>
+                    <input type="number" id="task-cat-id" placeholder="1-7">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn" onclick="closeTaskModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">添加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/admin/crawl';
+
+        // Tab切换
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+            
+            if (tab === 'sources') loadSources();
+            else if (tab === 'tasks') loadTasks();
+        }
+
+        // 加载爬虫源列表
+        async function loadSources() {
+            try {
+                const response = await fetch(`${API_BASE}/source/list?page=1&pageSize=100`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    displaySources(result.data.records || []);
+                } else {
+                    alert('加载失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('加载爬虫源失败:', error);
+                alert('网络错误,请检查后端服务');
+            }
+        }
+
+        // 显示爬虫源列表
+        function displaySources(sources) {
+            const tbody = document.getElementById('sources-tbody');
+            
+            if (!sources || sources.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div>📭 暂无爬虫源数据</div></td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = sources.map(source => `
+                <tr>
+                    <td>${source.id}</td>
+                    <td>${source.sourceName}</td>
+                    <td>
+                        <span class="status-badge ${source.sourceStatus === 1 ? 'status-active' : 'status-inactive'}">
+                            ${source.sourceStatus === 1 ? '✅ 运行中' : '⏸️ 已停止'}
+                        </span>
+                    </td>
+                    <td>${source.createTime || '-'}</td>
+                    <td>${source.updateTime || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm ${source.sourceStatus === 1 ? 'btn-danger' : 'btn-success'}" 
+                                onclick="toggleSource(${source.id}, ${source.sourceStatus === 1 ? 0 : 1})">
+                            ${source.sourceStatus === 1 ? '停止' : '启动'}
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="editSource(${source.id})">编辑</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 加载采集任务列表
+        async function loadTasks() {
+            try {
+                const response = await fetch(`${API_BASE}/task/list?page=1&pageSize=100`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    displayTasks(result.data.records || []);
+                } else {
+                    alert('加载失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('加载任务失败:', error);
+                alert('网络错误,请检查后端服务');
+            }
+        }
+
+        // 显示任务列表
+        function displayTasks(tasks) {
+            const tbody = document.getElementById('tasks-tbody');
+            
+            if (!tasks || tasks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div>📭 暂无采集任务</div></td></tr>';
+                return;
+            }
+            
+            const statusMap = {
+                0: { text: '❌ 失败', class: 'status-failed' },
+                1: { text: '✅ 成功', class: 'status-success' },
+                2: { text: '⏳ 排队中', class: 'status-pending' },
+                3: { text: '🔄 采集中', class: 'status-running' }
+            };
+            
+            tbody.innerHTML = tasks.map(task => {
+                const status = statusMap[task.taskStatus] || { text: '未知', class: '' };
+                return `
+                    <tr>
+                        <td>${task.id}</td>
+                        <td>${task.sourceId}</td>
+                        <td>${task.bookName || '-'}</td>
+                        <td>${task.authorName || '-'}</td>
+                        <td><span class="status-badge ${status.class}">${status.text}</span></td>
+                        <td>${task.crawlChapters || 0}</td>
+                        <td>${task.excCount || 0}</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">删除</button>
+                            ${task.taskStatus === 3 ? 
+                                `<button class="btn btn-sm btn-primary" onclick="checkProgress(${task.id})">查看进度</button>` 
+                                : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 显示添加爬虫源模态框
+        function showAddSourceModal() {
+            document.getElementById('source-modal-title').textContent = '添加爬虫源';
+            document.getElementById('source-form').reset();
+            document.getElementById('source-id').value = '';
+            document.getElementById('source-modal').classList.add('active');
+        }
+
+        // 关闭爬虫源模态框
+        function closeSourceModal() {
+            document.getElementById('source-modal').classList.remove('active');
+        }
+
+        // 编辑爬虫源
+        async function editSource(id) {
+            try {
+                const response = await fetch(`${API_BASE}/source/${id}`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const source = result.data;
+                    document.getElementById('source-modal-title').textContent = '编辑爬虫源';
+                    document.getElementById('source-id').value = source.id;
+                    document.getElementById('source-name').value = source.sourceName;
+                    document.getElementById('source-rule').value = source.crawlRule;
+                    document.getElementById('source-status').value = source.sourceStatus;
+                    document.getElementById('source-modal').classList.add('active');
+                } else {
+                    alert('获取爬虫源失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('获取爬虫源失败:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 提交爬虫源表单
+        async function submitSource(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('source-id').value;
+            const data = {
+                sourceName: document.getElementById('source-name').value,
+                crawlRule: document.getElementById('source-rule').value,
+                sourceStatus: parseInt(document.getElementById('source-status').value)
+            };
+            
+            if (id) data.id = parseInt(id);
+            
+            try {
+                const url = id ? `${API_BASE}/source` : `${API_BASE}/source`;
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    alert(id ? '更新成功!' : '添加成功!');
+                    closeSourceModal();
+                    loadSources();
+                } else {
+                    alert('操作失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('提交失败:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 开启/关闭爬虫
+        async function toggleSource(sourceId, status) {
+            if (!confirm(`确定要${status === 1 ? '启动' : '停止'}该爬虫源吗?`)) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/source/${sourceId}/status?sourceStatus=${status}`, {
+                    method: 'PUT'
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    alert('操作成功!');
+                    loadSources();
+                } else {
+                    alert('操作失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('操作失败:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 显示添加任务模态框
+        function showAddTaskModal() {
+            document.getElementById('task-form').reset();
+            document.getElementById('task-modal').classList.add('active');
+        }
+
+        // 关闭任务模态框
+        function closeTaskModal() {
+            document.getElementById('task-modal').classList.remove('active');
+        }
+
+        // 提交采集任务
+        async function submitTask(event) {
+            event.preventDefault();
+            
+            const data = {
+                sourceId: parseInt(document.getElementById('task-source-id').value),
+                bookId: document.getElementById('task-book-id').value,
+                bookName: document.getElementById('task-book-name').value,
+                authorName: document.getElementById('task-author-name').value,
+                catId: parseInt(document.getElementById('task-cat-id').value) || null
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/task`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    alert('添加成功!');
+                    closeTaskModal();
+                    loadTasks();
+                } else {
+                    alert('添加失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('提交失败:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 删除任务
+        async function deleteTask(id) {
+            if (!confirm('确定要删除该任务吗?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/task/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    alert('删除成功!');
+                    loadTasks();
+                } else {
+                    alert('删除失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('删除失败:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 查看进度
+        async function checkProgress(taskId) {
+            try {
+                const response = await fetch(`${API_BASE}/task/${taskId}/progress`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    alert(`当前已采集章节: ${result.data || 0} 章`);
+                } else {
+                    alert('获取进度失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('获取进度失败:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            loadSources();
+        };
+
+        // 自动刷新任务列表
+        setInterval(() => {
+            const tasksTab = document.getElementById('tasks-tab');
+            if (tasksTab.classList.contains('active')) {
+                loadTasks();
+            }
+        }, 5000); // 每5秒刷新一次任务列表
+    </script>
+</body>
+</html>
